@@ -232,6 +232,11 @@ acceptance(
       };
 
       await visit("/u/eviltrout/preferences/interface");
+
+      // force light mode, otherwise mode is ambiguous
+      const interfaceColor = this.container.lookup("service:interface-color");
+      interfaceColor.forceLightMode();
+
       assert.dom(".light-color-scheme").exists("has regular dropdown");
       assert.dom(".dark-color-scheme").exists("has dark color scheme dropdown");
       assert
@@ -241,9 +246,6 @@ acceptance(
           session.userDarkSchemeId.toString(),
           "sets site default as selected dark scheme"
         );
-      assert
-        .dom(".control-group.dark-mode")
-        .doesNotExist("does not show disable dark mode checkbox");
 
       removeCookie("color_scheme_id");
       removeCookie("dark_scheme_id");

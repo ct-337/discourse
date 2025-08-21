@@ -113,7 +113,11 @@ class Theme < ActiveRecord::Base
             :theme_site_settings,
             :settings_field,
             theme_fields: %i[upload theme_settings_migration],
-            child_themes: %i[color_scheme locale_fields theme_translation_overrides],
+            child_themes: [
+              { color_scheme: :base_scheme },
+              :locale_fields,
+              :theme_translation_overrides,
+            ],
           )
         end
 
@@ -124,8 +128,8 @@ class Theme < ActiveRecord::Base
             :user,
             :locale_fields,
             :theme_translation_overrides,
-            color_scheme: %i[theme color_scheme_colors],
-            owned_color_scheme: %i[theme color_scheme_colors],
+            color_scheme: %i[theme color_scheme_colors base_scheme],
+            owned_color_scheme: %i[theme color_scheme_colors base_scheme],
             parent_themes: %i[color_scheme locale_fields theme_translation_overrides],
           )
         end
@@ -163,7 +167,8 @@ class Theme < ActiveRecord::Base
 
     theme_fields.select(&:basic_html_field?).each(&:invalidate_baked!) if saved_change_to_name?
 
-    if saved_change_to_color_scheme_id? || saved_change_to_user_selectable? || saved_change_to_name?
+    if saved_change_to_color_scheme_id? || saved_change_to_dark_color_scheme_id? ||
+         saved_change_to_user_selectable? || saved_change_to_name?
       Theme.expire_site_cache!
     end
     notify_with_scheme = saved_change_to_color_scheme_id?
