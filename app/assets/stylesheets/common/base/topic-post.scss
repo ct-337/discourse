@@ -407,13 +407,6 @@ nav.post-controls {
           + .toggle-like {
             // Like button when like count is present
             padding-left: 0.45em;
-
-            // Like button when like count is present
-            .discourse-no-touch & {
-              &:hover {
-                background: var(--d-hover);
-              }
-            }
           }
 
           // Like count button
