@@ -99,7 +99,9 @@ export default class Flag extends Component {
   }
 
   get flagsAvailable() {
-    return this.args.model.flagTarget.flagsAvailable(this).filterBy("enabled");
+    return this.args.model.flagTarget
+      .flagsAvailable(this)
+      .filter((flag) => flag.enabled);
   }
 
   get staffFlagsAvailable() {
