@@ -180,7 +180,7 @@ export default class Topic extends RestModel {
 
   static bulkOperation(topics, operation, options, isTracked) {
     const data = {
-      topic_ids: topics.mapBy("id"),
+      topic_ids: topics.map((topic) => topic.id),
       operation,
       tracked: isTracked,
     };
@@ -626,7 +626,7 @@ export default class Topic extends RestModel {
 
   @discourseComputed("archetype")
   archetypeObject(archetype) {
-    return Site.currentProp("archetypes").findBy("id", archetype);
+    return Site.currentProp("archetypes").find((item) => item.id === archetype);
   }
 
   toggleStatus(property) {
@@ -719,8 +719,8 @@ export default class Topic extends RestModel {
     this.toggleProperty("bookmarked");
 
     const postIds = this.bookmarks
-      .filterBy("bookmarkable_type", "Post")
-      .mapBy("bookmarkable_id");
+      .filter((bookmark) => bookmark.bookmarkable_type === "Post")
+      .map((bookmark) => bookmark.bookmarkable_id);
     postIds.forEach((postId) => {
       const loadedPost = this.postStream.findLoadedPost(postId);
       if (loadedPost) {
@@ -823,10 +823,14 @@ export default class Topic extends RestModel {
     return this;
   }
 
-  reload() {
-    return ajax(`/t/${this.id}`, { type: "GET" }).then((topic_json) =>
-      this.updateFromJson(topic_json)
-    );
+  reload(opts = {}) {
+    const url = opts.post_number
+      ? `/t/${this.id}?post_number=${opts.post_number}`
+      : `/t/${this.id}`;
+
+    return ajax(url, { type: "GET" }).then((topic_json) => {
+      this.updateFromJson(topic_json);
+    });
   }
 
   clearPin() {
