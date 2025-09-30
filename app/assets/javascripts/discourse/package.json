@@ -7,6 +7,14 @@
   "author": "Discourse",
   "exports": {
     "./tests/*": "./tests/*",
+    "./helpers/element": {
+      "default": "./app/helpers/element",
+      "types": "./declarations/helpers/element.gjs.d.ts"
+    },
+    "./components/*": {
+      "default": "./app/components/*",
+      "types": "./declarations/components/*.gjs.d.ts"
+    },
     "./*": {
       "default": "./app/*",
       "types": "./declarations/*.d.ts"

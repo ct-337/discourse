@@ -198,14 +198,7 @@ export default class PostQuotedContent extends Component {
         {{(if
           this.shouldDisplayToggleButton (modifier on "click" this.onClickTitle)
         )}}
-        {{(if
-          @wrapperElement
-          (modifier
-            this.applyWrapperDataAttributes
-            @wrapperElement
-            expanded=this.expanded
-          )
-        )}}
+        {{(if @wrapperElement true)}}
       >
         {{~#if (has-block "title")~}}
           {{~yield to="title"~}}
