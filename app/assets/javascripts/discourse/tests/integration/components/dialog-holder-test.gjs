@@ -327,7 +327,7 @@ module("Integration | Component | dialog-holder", function (hooks) {
     );
   });
 
-  test("confirm dialogs returns a promise resolving to a boolean", async function (assert) {
+  test("confirm dialogs return a promise resolving to a boolean", async function (assert) {
     await render(<template><DialogHolder /></template>);
 
     const dialogMethods = ["confirm", "deleteConfirm", "yesNoConfirm"];
