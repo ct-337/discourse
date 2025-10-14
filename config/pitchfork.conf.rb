@@ -44,3 +44,69 @@ after_worker_fork do |server, worker|
   Discourse.after_fork
   SignalTrapLogger.instance.after_fork
 end
+
+before_service_worker_ready do |server, service_worker|
+  sidekiqs = ENV["UNICORN_SIDEKIQS"].to_i
+
+  if sidekiqs > 0
+    server.logger.info "starting #{sidekiqs} supervised sidekiqs"
+
+    require "demon/sidekiq"
+    Demon::Sidekiq.after_fork { DiscourseEvent.trigger(:sidekiq_fork_started) }
+    Demon::Sidekiq.start(sidekiqs, logger: server.logger)
+
+    if Discourse.enable_sidekiq_logging?
+      # Trap USR1, so we can re-issue to sidekiq workers
+      # but chain the default unicorn implementation as well
+      old_handler =
+        Signal.trap("USR1") do
+          old_handler.call
+
+          # We have seen Sidekiq processes getting stuck in production sporadically when log rotation happens.
+          # The cause is currently unknown but we suspect that it is related to the Unicorn master process and
+          # Sidekiq demon processes reopening logs at the same time as we noticed that Unicorn worker processes only
+          # reopen logs after the Unicorn master process is done. To workaround the problem, we are adding an arbitrary
+          # delay of 1 second to Sidekiq's log reopeing procedure. The 1 second delay should be
+          # more than enough for the Unicorn master process to finish reopening logs.
+          Demon::Sidekiq.kill("USR2")
+        end
+    end
+  end
+
+  enable_email_sync_demon = ENV["DISCOURSE_ENABLE_EMAIL_SYNC_DEMON"] == "true"
+
+  if enable_email_sync_demon
+    server.logger.info "starting up EmailSync demon"
+    Demon::EmailSync.start(1, logger: server.logger)
+  end
+
+  DiscoursePluginRegistry.demon_processes.each do |demon_class|
+    server.logger.info "starting #{demon_class.prefix} demon"
+    demon_class.start(1, logger: server.logger)
+  end
+
+  Thread.new do
+    while true
+      begin
+        sleep 60
+
+        if sidekiqs > 0
+          Demon::Sidekiq.ensure_running
+          Demon::Sidekiq.heartbeat_check
+          Demon::Sidekiq.rss_memory_check
+        end
+
+        if enable_email_sync_demon
+          Demon::EmailSync.ensure_running
+          Demon::EmailSync.check_email_sync_heartbeat
+        end
+
+        DiscoursePluginRegistry.demon_processes.each { |demon_class| demon_class.ensure_running }
+      rescue => e
+        Rails.logger.warn(
+          "Error in demon processes heartbeat check: #{e}\n#{e.backtrace.join("\n")}",
+        )
+      end
+    end
+  end
+end
