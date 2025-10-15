@@ -34,7 +34,24 @@ check_client_connection false
 before_fork { |server| Discourse.redis.close }
 
 after_mold_fork do |server, mold|
-  Discourse.preload_rails! if mold.generation.zero?
+  if mold.generation.zero?
+    Discourse.preload_rails!
+
+    supervisor = ENV["UNICORN_SUPERVISOR_PID"].to_i
+
+    if supervisor > 0
+      Thread.new do
+        while true
+          unless File.exist?("/proc/#{supervisor}")
+            server.logger.error "Kill self, supervisor is gone"
+            Process.kill "TERM", Process.pid
+          end
+          sleep 2
+        end
+      end
+    end
+  end
+
   Discourse.redis.close
   Discourse.before_fork
 end
