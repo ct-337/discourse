@@ -6,6 +6,7 @@ unicorn_stderr_path = "#{discourse_path}/log/unicorn.stderr.log"
 
 if enable_logstash_logger
   require_relative "../lib/discourse_logstash_logger"
+  require_relative "../lib/pitchfork_logstash_patch"
   FileUtils.touch(unicorn_stderr_path) if !File.exist?(unicorn_stderr_path)
   logger DiscourseLogstashLogger.logger(
            logdev: unicorn_stderr_path,

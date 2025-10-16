@@ -51,7 +51,7 @@ Discourse::Application.configure do
   if defined?(BetterErrors)
     BetterErrors::Middleware.allow_ip! ENV["TRUSTED_IP"] if ENV["TRUSTED_IP"]
 
-    if defined?(Unicorn) && ENV["UNICORN_WORKERS"].to_i != 1
+    if (defined?(Unicorn) || defined?(Pitchfork)) && ENV["UNICORN_WORKERS"].to_i != 1
       # BetterErrors doesn't work with multiple unicorn workers. Disable it to avoid confusion
       Rails.configuration.middleware.delete BetterErrors::Middleware
     end
