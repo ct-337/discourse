@@ -18,12 +18,12 @@ import { i18n } from "discourse-i18n";
 export default class ChatChannelFilter extends Component {
   @service capabilities;
   @service loadingSlider;
-  @service toasts;
 
   @tracked channelFilterResults;
   @tracked currentChannelFilter = "";
   @tracked currentChannelFilterResult;
   @tracked currentChannelFilterResultIndex = 0;
+  @tracked noResults = false;
 
   get currentFilterResultPosition() {
     return this.currentChannelFilterResultIndex + 1;
@@ -73,6 +73,7 @@ export default class ChatChannelFilter extends Component {
 
   @action
   clearFilteringState() {
+    this.noResults = false;
     this.currentChannelFilter = "";
     this.channelFilterResults = null;
     this.currentChannelFilterResult = null;
@@ -103,6 +104,7 @@ export default class ChatChannelFilter extends Component {
     this.searchRequest?.abort?.();
 
     try {
+      this.noResults = false;
       this.loadingSlider.transitionStarted();
 
       this.searchRequest = ajax("/chat/api/search", {
@@ -120,12 +122,7 @@ export default class ChatChannelFilter extends Component {
       this.currentChannelFilterResultIndex = 0;
 
       if (!this.channelFilterResults?.length) {
-        this.toasts.error({
-          data: {
-            message: i18n("chat.search.no_results"),
-          },
-        });
-
+        this.noResults = true;
         return;
       }
 
@@ -143,50 +140,58 @@ export default class ChatChannelFilter extends Component {
         class="chat-channel__filter-bar"
         {{didInsert this.clearFilteringState}}
       >
-        <FilterInput
-          {{autoFocus}}
-          @value={{this.currentChannelFilter}}
-          placeholder={{i18n "chat.search.title"}}
-          @filterAction={{this.loadSearchResults}}
-          class="no-blur"
-        />
+        <div>
+          <FilterInput
+            {{autoFocus}}
+            @value={{this.currentChannelFilter}}
+            placeholder={{i18n "chat.search.title"}}
+            @filterAction={{this.loadSearchResults}}
+            class="no-blur"
+          />
 
-        {{#if this.channelFilterResults.length}}
-          <span class="chat-channel__filter-position">
-            <span
-              class="chat-channel__filter-position-index"
-            >{{this.currentFilterResultPosition}}</span>
-            <span class="chat-channel__filter-position-separator">/</span>
-            <span
-              class="chat-channel__filter-position-total"
-            >{{this.channelFilterResults.length}}</span>
-          </span>
+          {{#if this.channelFilterResults.length}}
+            <span class="chat-channel__filter-position">
+              <span
+                class="chat-channel__filter-position-index"
+              >{{this.currentFilterResultPosition}}</span>
+              <span class="chat-channel__filter-position-separator">/</span>
+              <span
+                class="chat-channel__filter-position-total"
+              >{{this.channelFilterResults.length}}</span>
+            </span>
+
+            <DButton
+              @action={{this.navigateToPreviousResult}}
+              @icon="chevron-up"
+              class="btn-small chat-channel__prev-result"
+            />
+            <DButton
+              @action={{this.navigateToNextResult}}
+              @icon="chevron-down"
+              class="btn-small chat-channel__next-result"
+            />
+          {{/if}}
+
+          {{#if this.currentChannelFilter.length}}
+            <DButton
+              @icon="xmark"
+              class="btn-small"
+              @action={{this.clearFilteringState}}
+            />
+          {{/if}}
 
           <DButton
-            @action={{this.navigateToPreviousResult}}
-            @icon="chevron-up"
-            class="btn-small chat-channel__prev-result"
+            @action={{fn @onToggleFilter false}}
+            class="btn-primary btn-small"
+            @label="done"
           />
-          <DButton
-            @action={{this.navigateToNextResult}}
-            @icon="chevron-down"
-            class="btn-small chat-channel__next-result"
-          />
+        </div>
+
+        {{#if this.noResults}}
+          <div class="alert alert-info">
+            {{i18n "chat.search.no_results"}}
+          </div>
         {{/if}}
-
-        {{#if this.currentChannelFilter.length}}
-          <DButton
-            @icon="xmark"
-            class="btn-small"
-            @action={{this.clearFilteringState}}
-          />
-        {{/if}}
-
-        <DButton
-          @action={{fn @onToggleFilter false}}
-          class="btn-primary btn-small"
-          @label="done"
-        />
       </div>
     {{/if}}
   </template>

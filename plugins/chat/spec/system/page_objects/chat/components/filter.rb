@@ -35,8 +35,7 @@ module PageObjects
         end
 
         def has_no_results?
-          toasts = PageObjects::Components::Toasts.new
-          toasts.has_error?(I18n.t("js.chat.search.no_results"))
+          has_css?(".alert.alert-info", text: I18n.t("js.chat.search.no_results"))
         end
 
         def has_state?(results: nil, position: nil)
