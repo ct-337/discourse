@@ -168,8 +168,6 @@ export default class ChatMessageInfo extends Component {
         {{/if}}
 
         {{#if (and @threadContext @message.isOriginalThreadMessage)}}
-
-          {{log this.route this.routeModels}}
           <LinkTo
             @route={{this.route}}
             @models={{this.routeModels}}
