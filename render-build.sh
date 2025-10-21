@@ -1,23 +1,21 @@
 #!/bin/bash
 
-# Fail fast on errors
+# Fail fast and show commands
 set -e
-
-# Print commands for debugging
 set -x
 
-# Ensure Ruby and Bundler are available
+# Confirm Ruby and Bundler
 ruby -v
 bundle -v
 
-# Install gem dependencies
+# Install Ruby gems
 bundle install --jobs=4 --retry=3
 
-# Only run setup if we're in production
-if [ "$RAILS_ENV" = "production" ]; then
-  # Migrate the database
-  bundle exec rake db:migrate
+# Install Node.js dependencies
+yarn install --check-files
 
-  # Precompile assets
-  bundle exec rake assets:precompile
-fi
+# Run database migrations
+bundle exec rake db:migrate
+
+# Precompile frontend assets
+bundle exec rake assets:precompile
