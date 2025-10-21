@@ -1,17 +1,13 @@
 #!/bin/bash
 
-# Update system packages
-apt-get update
+# Ensure bundler is installed
+gem install bundler
 
-# Install native build tools required by mini_racer and libv8
-apt-get install -y build-essential libv8-dev python3
+# Install Ruby gems
+bundle install --jobs=4 --retry=3
 
-# Install Node.js headers (needed for mini_racer)
-curl -fsSL https://deb.nodesource.com/setup_18.x | bash -
-apt-get install -y nodejs
-
-# Install Ruby dependencies
-bundle install
+# Precompile assets (optional but recommended)
+bundle exec rake assets:precompile
 
 # Exit cleanly
 exit 0
