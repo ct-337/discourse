@@ -2,6 +2,10 @@
 set -e
 set -x
 
+# Override system gem path to use fresh Bundler
+export GEM_HOME="$HOME/.gem"
+export PATH="$GEM_HOME/bin:$PATH"
+
 # Install Bundler
 gem install bundler -v 2.4.22
 
