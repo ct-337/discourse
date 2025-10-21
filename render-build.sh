@@ -2,8 +2,7 @@
 set -e
 set -x
 
-# Force reinstall of Bundler to fix corrupted gem path
-gem uninstall bundler -aIx || true
+# Install the exact Bundler version required by Gemfile.lock
 gem install bundler -v 2.4.22
 
 # Confirm Ruby and Bundler
