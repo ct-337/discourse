@@ -1,28 +1,23 @@
 #!/bin/bash
 
-# Fail fast on any error
+# Fail fast on errors
 set -e
 
-# Print each command before running (for easier debugging)
+# Print commands for debugging
 set -x
 
-# Ensure correct Ruby version is used
+# Ensure Ruby and Bundler are available
 ruby -v
 bundle -v
 
-# Install all gem dependencies
+# Install gem dependencies
 bundle install --jobs=4 --retry=3
 
-# Run database migrations
-bundle exec rake db:migrate
+# Only run setup if we're in production
+if [ "$RAILS_ENV" = "production" ]; then
+  # Migrate the database
+  bundle exec rake db:migrate
 
-# Precompile frontend assets
-bundle exec rake assets:precompile
-
-# Optional: verify Redis connectivity (can be removed if not needed)
-# bundle exec rake redis:check
-
-# Optional: verify DB connectivity (can be removed if not needed)
-# bundle exec rake db:check
-
-# Done — Render will now run your Start Command
+  # Precompile assets
+  bundle exec rake assets:precompile
+fi
