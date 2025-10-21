@@ -5,8 +5,9 @@ set -x
 # Install Bundler
 gem install bundler -v 2.4.22
 
-# Reinstall nokogiri from source to avoid native extension trap
+# Reinstall native gems from source
 gem install nokogiri -v 1.15.4 -- --use-system-libraries
+gem install sassc -- --with-cppflags="-O2"
 
 # Confirm Ruby and Bundler
 ruby -v
